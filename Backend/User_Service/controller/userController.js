@@ -53,9 +53,12 @@ exports.verifyUser = async (req, res) => {
 
     const user = await User.findOne({ email });
 
-    
+    if (!user) return res.json({ isUserValid: "false", isAdmin: "false" });
 
-    res.json({  });
+    if(user.role === "admin") return res.json({ isUserValid: "true", isAdmin: "true" });
+
+    res.json({ isUserValid: "true", isAdmin: "false" });
+
   } catch (err) {
     res.status(401).json({ message: 'Token invalid or expired' });
   }

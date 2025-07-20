@@ -8,9 +8,9 @@ router.get('/', requireAuth, productController.getAllProducts);
 router.get('/:id', requireAuth, productController.getProductById);
 
 // Admin-only (or internal service)
-router.post('/', requireAuth, checkSysAdmin, productController.createProduct);
-router.put('/:id', requireAuth, checkSysAdmin, productController.updateProduct);
-router.delete('/:id', requireAuth, checkSysAdmin, productController.deleteProduct);
+router.post('/', checkSysAdmin, productController.createProduct);
+router.put('/:id', checkSysAdmin, productController.updateProduct);
+router.delete('/:id', checkSysAdmin, productController.deleteProduct);
 
 // Inventory Reservation (called by Order Service)
 router.post('/reserve', requireAuth, productController.reserveInventory);

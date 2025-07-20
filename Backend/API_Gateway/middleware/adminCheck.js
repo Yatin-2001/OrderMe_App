@@ -5,10 +5,12 @@ const baseURL = process.env.USER_SERVICE_URL;
 const checkSysAdmin = async (req, res, next) => {
 
     try {
-         const user = await forwardRequest('post', `${baseURL}/verifyUser`, {username});
+        const user = await forwardRequest('post', `${baseURL}/verifyUser`, {username});
+        var userValid = user.data.isUserValid;
         var isAdmin = user.data.isAdmin;
 
-        if (isAdmin === "true") {
+        if (userValid === "true" && isAdmin === "true") {
+            req.user = username;
             req.isSysAdmin = true;
 
         } else {
