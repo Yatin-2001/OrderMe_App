@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const grpcServer = require('./gRPC/server');
 const productRoutes = require('./routes/productRoutes');
+const {startProductConsumers} = require('./kafka/consumer');
 dotenv.config();
 
 const app = express();
@@ -23,4 +24,7 @@ mongoose.connect(process.env.MONGO_URI).then(() => {
   app.listen(PORT, () => {
     console.log(`REST Product API running on port ${PORT}`);
   });
+
+  startProductConsumers();
+
 });
