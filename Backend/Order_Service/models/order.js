@@ -12,12 +12,16 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: Number,
   status: {
     type: String,
-    enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'FAILED', 'CANCELLED'],
+    enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
     default: 'CREATED',
   },
   isReturnConfirmed: {
     type: Boolean,
     default: false,
+  },
+  isRefundPaid: {
+    type: Boolean,
+    required: false
   },
 
   createdAt: { type: Date, default: Date.now },
