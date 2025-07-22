@@ -54,3 +54,48 @@ exports.getProfile = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
+// CART APIs
+exports.addToCart = async(req, res) => {
+  
+  try{
+
+    const cartDetails = await forwardRequest('post', `${baseURL}/cart`, req.body);
+
+    res.status(200).json(cartDetails);
+
+  } catch (err) {
+    res.status(500).json({ error: `Failed to add item to cart due to error: ${err}` });
+
+  }
+
+};
+
+exports.getCart = async(req, res) => {
+  try{
+
+    const cartDetails = await forwardRequest('get', `${baseURL}/cart`, req.body);
+
+    res.status(200).json(cartDetails);
+
+  } catch (err) {
+    res.status(500).json({ error: `Failed to get the cart due to error: ${err}` });
+    
+  }
+};
+
+exports.removeFromCart = async(req, res) => {
+
+  const {productId} = req.params;
+
+  try{
+
+    const cartDetails = await forwardRequest('delete', `${baseURL}/cart/${productId}`);
+
+    res.status(200).json(cartDetails);
+
+  } catch (err) {
+    res.status(500).json({ error: `Failed to delete item from cart due to error: ${err}` });
+    
+  }
+};

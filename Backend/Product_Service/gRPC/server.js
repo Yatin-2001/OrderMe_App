@@ -2,7 +2,7 @@ const grpc = require('@grpc/grpc-js');
 const protoLoader = require('@grpc/proto-loader');
 const productController = require('../controllers/productControllers');
 
-const packageDef = protoLoader.loadSync(__dirname + '/../proto/product.proto');
+const packageDef = protoLoader.loadSync(__dirname + '/../Proto/product.proto');
 const proto = grpc.loadPackageDefinition(packageDef).product;
 
 const server = new grpc.Server();

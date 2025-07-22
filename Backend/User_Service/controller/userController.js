@@ -1,5 +1,8 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
+const productClient = require('../grpcClient/productClient');
+
+// Normal APIs
 
 exports.register = async (req, res) => {
   try {
@@ -63,3 +66,81 @@ exports.verifyUser = async (req, res) => {
     res.status(401).json({ message: 'Token invalid or expired' });
   }
 };
+
+
+////////////////////////////////////////////////////////////////////
+
+// CART realted APIs
+
+// Add item to cart
+exports.addToCart = async (req, res) => {
+  try {
+    const { productId, quantity } = req.body;
+    const userId = req.user.id;
+
+    // Validate product via gRPC
+    productClient.GetProduct({ id: productId }, async (err, productData) => {
+      if (err) return res.status(404).json({ error: 'Product not found' });
+
+      const user = await User.findById(userId);
+
+      // Check if product already in cart
+      const existing = user.cart.find(item => item.productId === productId);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        user.cart.push({ productId, quantity });
+      }
+
+      await user.save();
+      res.status(200).json({ message: 'Item added to cart', cart: user.cart });
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Get cart with product details
+exports.getCart = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+
+    const detailedCart = await Promise.all(user.cart.map(item => {
+      return new Promise((resolve) => {
+        productClient.GetProduct({ id: item.productId }, (err, product) => {
+          if (err) return resolve({ ...item._doc, product: null });
+          resolve({
+            ...item._doc,
+            product: {
+              name: product.name,
+              price: product.price,
+              available: product.availableStock,
+            }
+          });
+        });
+      });
+    }));
+
+    res.status(200).json(detailedCart);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load cart' });
+  }
+};
+
+// Remove item from cart
+exports.removeFromCart = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const userId = req.user.id;
+
+    const user = await User.findById(userId);
+    user.cart = user.cart.filter(item => item.productId !== productId);
+    await user.save();
+
+    res.status(200).json({ message: 'Item removed from cart' });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to remove item from cart' });
+  }
+};
+
