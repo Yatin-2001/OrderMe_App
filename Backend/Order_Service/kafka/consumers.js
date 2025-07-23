@@ -17,7 +17,6 @@ async function handleFailure(order) {
   });
 
   order.status = 'FAILED';
-  await order.save();
 }
 
 
@@ -33,6 +32,9 @@ async function startOrderConsumers() {
   await consumer.subscribe({ topic: 'shipment-created', fromBeginning: false });
   await consumer.subscribe({ topic: 'shipment-delivered', fromBeginning: false });
   await consumer.subscribe({ topic: 'shipment-failed', fromBeginning: false });
+
+  await consumer.subscribe({ topic: 'pickup-scheduled', fromBeginning: false });
+  await consumer.subscribe({ topic: 'pickup-failed', fromBeginning: false });
 
   await consumer.subscribe({ topic: 'refund-success', fromBeginning: false });
   await consumer.subscribe({ topic: 'refund-failed', fromBeginning: false });
@@ -65,6 +67,12 @@ async function startOrderConsumers() {
           order.status = 'DELIVERED';
           break;
         case 'shipment-failed':
+          handleFailure(order);
+          break;
+        case 'pickup-scheduled':
+          order.status = 'PICKUP SCHEDULED'
+          break;
+        case 'pickup-failed' :
           handleFailure(order);
           break;
         case 'refund-success':

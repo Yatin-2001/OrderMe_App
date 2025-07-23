@@ -54,7 +54,9 @@ exports.reserveInventory = async (data) => {
             orderId: data.orderId,
             userId: data.userId,
             amount: data.amount,
-            paymentMethod: data.paymentMethod
+            paymentMethod: data.paymentMethod,
+            userAddress: data.userAddress,
+            warehouseId: warehouse.warehouse
         })
 
         await sendEvent('inventory-reserved', { orderId: data.orderId, warehouseId: warehouse.warehouse });

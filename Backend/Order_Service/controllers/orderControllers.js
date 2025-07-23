@@ -16,7 +16,7 @@ exports.createOrder = async (req, res) => {
       userId: userId,
       amount: totalAmount,
       paymentMethod: paymentMethod,
-      address: address,
+      userAddress: address,
       items,
     });
 

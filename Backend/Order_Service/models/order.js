@@ -22,7 +22,7 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: Number,
   status: {
     type: String,
-    enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
+    enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'PICKUP SCHEDULED', 'PICKUP FAILED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
     default: 'CREATED',
   },
   isReturnConfirmed: {

@@ -3,13 +3,19 @@ const { sendEvent } = require('../kafka/producer.js');
 
 var processPayment = async (data) => {
   try {
-    const { orderId, userId, amount, paymentMethod } = data;
+    const { orderId, userId, amount, paymentMethod, warehouseId, userAddress } = data;
 
     const payment = new Payment({ orderId, userId, amount, paymentMethod });
     await payment.save();
 
     // SAGA attern call to shipment to create a shipment...
-    await sendEvent();
+    await sendEvent('shipment-initiate', {
+      orderId: orderId,
+      userId: userId,
+      userAddress: userAddress,
+      warehouseId: warehouseId,
+      paymentMethod: paymentMethod
+    });
 
     await sendEvent('payment-success', { orderId });
 
@@ -53,7 +59,7 @@ async function processCODPayment({ orderId }) {
   
 }
 
-async function processRefund({ orderId }) {
+async function processRefund() {
   try{
     console.log(`Processing refund for Order ${orderId}`);
 
@@ -65,13 +71,12 @@ async function processRefund({ orderId }) {
     }
 
     if(payment.paymentMethod === "COD" && payment.isCODPayed === true){
-      console.log(`Payment was COD so refund will be given by the Shipment collector!!!`);
+      console.log(`Payment was COD so refund was given by the Shipment collector!!!`);
 
-    } else if(payment.paymentMethod === "COD") {
-      console.log(`Payment was COD but user did not pay, so no refund initiated`);
+    } else {
+      console.log(`Refund initiated of amount: ${payment.amount}; to the original Payment method: ${payment.paymentMethod}`)
+    
     }
-
-    console.log(`Refund initiated of amount: ${payment.amount}; to the original Payment method: ${payment.paymentMethod}`)
 
     await sendEvent('refund-success', { orderId });
 

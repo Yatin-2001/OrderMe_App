@@ -1,12 +1,23 @@
 const mongoose = require('mongoose');
 
+const address = new mongoose.Schema({
+  name: String,
+  address: String,
+  pincode: String,
+  coordinates: {
+    lat: Number,
+    lng: Number,
+  },
+});
+
+
 const shipmentSchema = new mongoose.Schema({
   orderId: String,
   userId: String,
-  address: String,
+  userAddress: address,
   status: {
     type: String,
-    enum: ['PENDING', 'SHIPPED', 'DELIVERED', 'FAILED'],
+    enum: ['PENDING', 'CANCELLED', 'SHIPPED', 'DELIVERED', 'FAILED', 'PICKUP SCHEDULED', 'PICKUP SUCCCESSFUL', 'PICKUP FAILED'],
     default: 'PENDING'
   },
   paymentMethod: {
@@ -15,10 +26,17 @@ const shipmentSchema = new mongoose.Schema({
   },
   scheduledDay: {
     type: Date,
+    defaukt: Date.now
   },
-  warehouse: {
+  warehouseId: {
     type: String,
     required: true
+  },
+  isPickupRequired:{
+    type: Boolean
+  },
+  pickupSchedule: {
+    type: Date,
   }
 
 }, { timestamps: true });
