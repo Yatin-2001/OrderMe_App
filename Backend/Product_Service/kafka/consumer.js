@@ -1,5 +1,6 @@
 const { Kafka } = require('kafkajs');
 const Product = require('../models/Product');
+const { reserveInventory, releaseInventory } = require('../controllers/productControllers');
 
 const kafka = new Kafka({ brokers: [process.env.KAFKA_BROKER] });
 const consumer = kafka.consumer({ groupId: 'product-service-group' });
@@ -15,38 +16,11 @@ async function startProductConsumers() {
       const data = JSON.parse(message.value.toString());
 
       if (topic === 'reserve-inventory') {
-        let canReserve = true;
-
-        for (const item of data.items) {
-          const product = await Product.findById(item.productId);
-          if (!product || product.quantity < item.quantity) {
-            canReserve = false;
-            break;
-          }
-        }
-
-        if (canReserve) {
-          for (const item of data.items) {
-            const product = await Product.findById(item.productId);
-            product.quantity -= item.quantity;
-            await product.save();
-          }
-
-          await sendEvent('inventory-reserved', { orderId: data.orderId });
-        } else {
-          await sendEvent('inventory-failed', { orderId: data.orderId });
-        }
+        await reserveInventory(data);
       }
 
       if (topic === 'cancel-order') {
-        for (const item of data.items) {
-          const product = await Product.findById(item.productId);
-          if (product) {
-            product.quantity += item.quantity;
-            await product.save();
-          }
-        }
-        console.log(`Inventory released for order ${data.orderId}`);
+        await releaseInventory(data);
       }
     },
   });

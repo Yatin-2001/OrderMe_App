@@ -8,6 +8,9 @@ var processPayment = async (data) => {
     const payment = new Payment({ orderId, userId, amount, paymentMethod });
     await payment.save();
 
+    // SAGA attern call to shipment to create a shipment...
+    await sendEvent();
+
     await sendEvent('payment-success', { orderId });
 
     res.status(201).json(payment);
@@ -63,11 +66,9 @@ async function processRefund({ orderId }) {
 
     if(payment.paymentMethod === "COD" && payment.isCODPayed === true){
       console.log(`Payment was COD so refund will be given by the Shipment collector!!!`);
-      res.json({msg: 'Refund will processed during pickup'})
 
     } else if(payment.paymentMethod === "COD") {
       console.log(`Payment was COD but user did not pay, so no refund initiated`);
-      res.json({msg: 'Refund processed'})
     }
 
     console.log(`Refund initiated of amount: ${payment.amount}; to the original Payment method: ${payment.paymentMethod}`)
@@ -87,4 +88,3 @@ async function processRefund({ orderId }) {
 }
 
 module.exports = { getPaymentByOrderId, processPayment, processCODPayment, processRefund };
-

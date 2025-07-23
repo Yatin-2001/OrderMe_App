@@ -4,25 +4,21 @@ const { sendEvent } = require('../kafka/producer');
 
 exports.createOrder = async (req, res) => {
   try {
-    const { items, totalAmount, paymentMethod } = req.body;
+    const { items, totalAmount, paymentMethod, address } = req.body;
     const userId = req.user.id;
 
     // 1. Create order in DB
-    const order = await Order.create({ userId, items, totalAmount });
+    const order = await Order.create({ userId, items, totalAmount, userAddress: address });
 
     // 2. Initiate SAGA for Reserve Inventory
     await sendEvent('reserve-inventory', {
       orderId: order._id,
+      userId: userId,
+      amount: totalAmount,
+      paymentMethod: paymentMethod,
+      address: address,
       items,
     });
-
-    // 3. Initiate SAGA for add Paymment
-    await sendEvent('update-payment', {
-      orderId: order._id,
-      userId: userId,
-      amount: totalAmount, 
-      paymentMethod: paymentMethod
-    })
 
 
     res.status(201).json({ message: 'Order placed. Reservation started.', orderId: order._id });
@@ -53,6 +49,7 @@ exports.cancelOrder = async (req, res) => {
       orderId,
       items: order.items,
       status: order.status,
+      warehouseId: order.warehouseSelected,
       reason: 'Delivery cancellation',
     });
 

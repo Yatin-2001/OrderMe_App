@@ -1,38 +1,90 @@
 const Product = require('../models/products');
+const Inventory = require('../models/inventory');
+const { sendEvent } = require('../kafka/producer');
+const {findNearestWarehouseWithStock} = require('../utils/productUtils');
 
 // gRPC controllers - to be used by gRPC server to answer queries
-
 exports.getProductById = async (id) => {
-    return await Product.findById(id);
+    
+    var prod = await Product.findOne({_id: id});
+    var inv = await Inventory.find({productId: id});
+
+    var availableQty = inv.reduce((qty, item) => (qty + item.quantity), 0);
+    var reservedQty = inv.reduce((qty, item) => (qty + item.reserved), 0);
+
+    var product = {};
+
+    product.id = id;
+    product.name = prod.name;
+    product.availableQty = availableQty;
+    product.reservedQty = reservedQty;
+
+
+    return product;
+
 };
 
-exports.reserveInventory = async (productId, quantity) => {
-    const product = await Product.findById(productId);
-    if (!product || product.availableQty < quantity) return { success: false };
+// Kafka consumer controllers...
+exports.reserveInventory = async (data) => {
 
-    product.availableQty -= quantity;
-    product.reservedQty += quantity;
-    await product.save();
-    return { success: true };
+    const warehouse = findNearestWarehouseWithStock(data.items, data.address.coordinates);
+
+    if(warehouse !== null){
+        // There is a warehouse with all the inventory...
+        for (const item of data.items) {
+            var invId = warehouse.stock.find((stockItm) => stockItm.productId == item.productId);
+
+            await Inventory.findByIdAndUpdate(
+                invId._id,
+                {
+                  $inc: {
+                    reserved: item.quantity,
+                  },
+                  $dec: {
+                    quantity: item.quantity,
+                  }
+                },
+            );
+
+        }
+
+
+        // Initiate SAGA for add Paymment
+        await sendEvent('update-payment', {
+            orderId: data.orderId,
+            userId: data.userId,
+            amount: data.amount,
+            paymentMethod: data.paymentMethod
+        })
+
+        await sendEvent('inventory-reserved', { orderId: data.orderId, warehouseId: warehouse.warehouse });
+
+    } else {
+        await sendEvent('inventory-failed', { orderId: data.orderId });
+
+    }
+
 };
 
-exports.releaseInventory = async (productId, quantity) => {
-    const product = await Product.findById(productId);
-    if (!product || product.reservedQty < quantity) return { success: false };
+exports.releaseInventory = async (data) => {
 
-    product.availableQty += quantity;
-    product.reservedQty -= quantity;
-    await product.save();
-    return { success: true };
-};
+    try{
+        for (const item of data.items) {
+            const inv = await Inventory.find({productId: item.productId, warehouseId: data.warehouseId});
+            if (inv) {
+                inv.quantity += item.quantity;
+                inv.reserved -= item.quantity
+                await inv.save();
+            }
+        }
 
-exports.finalizeInventory = async (productId, quantity) => {
-    const product = await Product.findById(productId);
-    if (!product || product.reservedQty < quantity) return { success: false };
+        console.log("Inventory released successfully for cancelled order!!!");
+    
+    } catch(err) {
+        console.log(`Inventory release failed for cancelled order: ${data.orderId}.\nReason: ${err}`);
 
-    product.reservedQty -= quantity;
-    await product.save();
-    return { success: true };
+    }
+
 };
 
 
@@ -63,8 +115,8 @@ exports.getProductByIdREST = async (req, res) => {
 
 exports.createProduct = async (req, res) => {
     try {
-        const { name, description, price, availableQty } = req.body;
-        const product = new Product({ name, description, price, availableQty });
+        const { name, description, price } = req.body;
+        const product = new Product({ name, description, price });
         await product.save();
         res.status(201).json(product);
     } catch (err) {
@@ -74,10 +126,10 @@ exports.createProduct = async (req, res) => {
 
 exports.updateProduct = async (req, res) => {
     try {
-        const { name, description, price, availableQty } = req.body;
+        const { name, description, price } = req.body;
         const product = await Product.findByIdAndUpdate(
             req.params.id,
-            { name, description, price, availableQty },
+            { name, description, price },
             { new: true }
         );
         if (!product) return res.status(404).json({ message: 'Product not found' });

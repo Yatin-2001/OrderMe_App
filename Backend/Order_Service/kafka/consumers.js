@@ -31,6 +31,7 @@ async function startOrderConsumers() {
   await consumer.subscribe({ topic: 'payment-failed', fromBeginning: false });
 
   await consumer.subscribe({ topic: 'shipment-created', fromBeginning: false });
+  await consumer.subscribe({ topic: 'shipment-delivered', fromBeginning: false });
   await consumer.subscribe({ topic: 'shipment-failed', fromBeginning: false });
 
   await consumer.subscribe({ topic: 'refund-success', fromBeginning: false });
@@ -46,6 +47,7 @@ async function startOrderConsumers() {
       switch (topic) {
         case 'inventory-reserved':
           order.status = 'INVENTORY_RESERVED';
+          order.warehouseSelected = data.warehouseId;
           break;
         case 'inventory-failed':
           handleFailure(order);
@@ -58,6 +60,9 @@ async function startOrderConsumers() {
           break;
         case 'shipment-created':
           order.status = 'SHIPPED';
+          break;
+        case 'shipment-delivered':
+          order.status = 'DELIVERED';
           break;
         case 'shipment-failed':
           handleFailure(order);

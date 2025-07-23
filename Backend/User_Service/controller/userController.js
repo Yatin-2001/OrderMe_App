@@ -67,6 +67,26 @@ exports.verifyUser = async (req, res) => {
   }
 };
 
+exports.addAddress = async(req, res) => {
+  try {
+    const {username, address} = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) return res.status(500).json({ error: "User could not be found!!!" });
+
+    user.addressList.push(address);
+
+    user.save();
+
+    res.json({msg: "User address addedd successfully!!!"})
+
+  } catch (err) {
+
+
+  }
+}
+
 
 ////////////////////////////////////////////////////////////////////
 
