@@ -1,7 +1,8 @@
 // kafka/consumers.js
-const { kafka } = require('../config/kafka');
+const { Kafka } = require('kafkajs');
 const { handleShipment, cancelShipment } = require('../controllers/shipmentController');
 
+const kafka = new Kafka({ brokers: ['localhost:9092'] });
 const consumer = kafka.consumer({ groupId: 'shipment-service' });
 
 async function startShipmentConsumers() {
