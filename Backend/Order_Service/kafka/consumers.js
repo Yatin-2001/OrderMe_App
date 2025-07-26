@@ -34,6 +34,7 @@ async function startOrderConsumers() {
   await consumer.subscribe({ topic: 'shipment-failed', fromBeginning: false });
 
   await consumer.subscribe({ topic: 'pickup-scheduled', fromBeginning: false });
+  await consumer.subscribe({ topic: 'pickup-successful', fromBeginning: false });
   await consumer.subscribe({ topic: 'pickup-failed', fromBeginning: false });
 
   await consumer.subscribe({ topic: 'refund-success', fromBeginning: false });
@@ -72,7 +73,10 @@ async function startOrderConsumers() {
         case 'pickup-scheduled':
           order.status = 'PICKUP SCHEDULED'
           break;
-        case 'pickup-failed' :
+        case 'pickup-successful':
+          order.status = 'PICKUP SUCCESSFUL'
+          break;
+        case 'pickup-failed':
           handleFailure(order);
           break;
         case 'refund-success':
@@ -88,6 +92,13 @@ async function startOrderConsumers() {
       }
 
       await order.save();
+
+      // Initate Event for creating order.
+      await sendEvent('update-order', {
+        orderId: order._id,
+        status: order.status
+      });
+
       console.log(`Order ${data.orderId} updated to ${order.status}`);
     },
   });

@@ -4,7 +4,7 @@ const { sendEvent } = require('../kafka/producer');
 
 exports.createOrder = async (req, res) => {
   try {
-    const { items, totalAmount, paymentMethod, address } = req.body;
+    const { email, items, totalAmount, paymentMethod, address } = req.body;
     const userId = req.user.id;
 
     // 1. Create order in DB
@@ -18,6 +18,14 @@ exports.createOrder = async (req, res) => {
       paymentMethod: paymentMethod,
       userAddress: address,
       items,
+    });
+
+    // 3. Initate Event for creating order.
+    await sendEvent('add-order', {
+      email: email,
+      orderId: order._id,
+      items: items,
+      address: address
     });
 
 
@@ -55,6 +63,12 @@ exports.cancelOrder = async (req, res) => {
 
     order.status = 'CANCELLED';
     await order.save();
+
+    // Initate Event for creating order.
+    await sendEvent('update-order', {
+      orderId: order._id,
+      status: order.status
+    });
 
     return res.json({ message: 'Order Cancellation in progress...' });
 

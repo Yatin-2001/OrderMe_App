@@ -24,8 +24,45 @@ async function startOrderConsumers() {
       eachMessage: async ({ topic, message }) => {
         const data = JSON.parse(message.value.toString());
   
-        if(topic === 'add-order')
+        switch(topic){
 
+          case 'add-order':
+            addOrder(data);
+            break;
+          
+          case 'add-payment':
+            addPayment(data);
+            break;
+
+          case 'add-shipment':
+            addShipment(data);
+            break;
+
+          case 'update-order':
+            updateOrder(data);
+            break;
+
+          case 'update-payment':
+            updatePayment(data);
+            break;
+
+          case 'update-shipment':
+            updateShipment(data);
+            break;
+
+          case 'add-product':
+            addProduct(data);
+            break;
+
+          case 'update-product':
+            updateProduct(data);
+            break;
+
+          case 'delete-product':
+            deleteProduct(data);
+            break;
+
+        }
         
         await order.save();
         console.log(`Order ${data.orderId} updated to ${order.status}`);

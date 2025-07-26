@@ -6,7 +6,7 @@ const paymentSchema = new mongoose.Schema({
   amount: Number,
   status: {
     type: String,
-    enum: ['INITIATED', 'SUCCESS', 'FAILED'],
+    enum: ['INITIATED', 'SUCCESS', 'FAILED', ''],
     default: 'INITIATED'
   },
   paymentMethod: {

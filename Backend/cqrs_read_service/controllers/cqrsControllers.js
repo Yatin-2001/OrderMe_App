@@ -51,13 +51,13 @@ async function updateOrder(data){
 
 async function addPayment(data){
 
-    var { orderId, paymentId, amount, status, paymentMethod, isCODPayed } = data;
+    var { orderId, paymentId, status, amount, paymentMethod } = data;
 
     try{
 
         var order = Order.findOne({ orderId: orderId });
 
-        const payment = await Payment.create({ paymentId, orderId, amount, status, paymentMethod, isCODPayed });
+        const payment = await Payment.create({ paymentId, orderId, status, amount, paymentMethod });
 
         order.paymentId = payment.paymentId;
 

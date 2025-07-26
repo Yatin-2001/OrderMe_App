@@ -19,6 +19,14 @@ var processPayment = async (data) => {
 
     await sendEvent('payment-success', { orderId });
 
+    await sendEvent('add-payment', {
+      paymentId: payment._id, 
+      orderId: orderId, 
+      status: (paymentMethod === COD) ? 'INITIATED' : 'SUCCESS',
+      amount: amount, 
+      paymentMethod: paymentMethod
+    });
+
     res.status(201).json(payment);
 
   } catch (err) {
@@ -49,6 +57,12 @@ async function processCODPayment({ orderId }) {
     payment.save();
 
     await sendEvent('payment-success', { orderId });
+
+    await sendEvent('update-payment', {
+      paymentId: payment._id, 
+      status: 'SUCCESS',
+      isCODPayed: true
+    });
 
     res.json({msg: "COD payment processed"});
 

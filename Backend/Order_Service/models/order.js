@@ -13,6 +13,7 @@ const address = new mongoose.Schema({
 
 const OrderSchema = new mongoose.Schema({
   userId: { type: String, required: true },
+  email: {type: String, requid: true},
   items: [
     {
       productId: String,
@@ -22,12 +23,8 @@ const OrderSchema = new mongoose.Schema({
   totalAmount: Number,
   status: {
     type: String,
-    enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'PICKUP SCHEDULED', 'PICKUP FAILED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
+    enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'PICKUP SCHEDULED', 'PICKUP SUCCESSFUL','PICKUP FAILED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
     default: 'CREATED',
-  },
-  isReturnConfirmed: {
-    type: Boolean,
-    default: false,
   },
   isRefundPaid: {
     type: Boolean,

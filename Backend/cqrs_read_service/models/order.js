@@ -12,6 +12,7 @@ const address = new mongoose.Schema({
 
 const orderSchema = new mongoose.Schema({
     orderId: { type: String, required: true },
+    email: { type: String, required: true },
     items: [
         {
             productId: String,
@@ -20,7 +21,7 @@ const orderSchema = new mongoose.Schema({
     ],
     status: {
         type: String,
-        enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'PICKUP SCHEDULED', 'PICKUP FAILED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
+        enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'PICKUP SCHEDULED', 'PICKUP SUCCESSFUL', 'PICKUP FAILED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],
         default: 'CREATED',
     },
     userAddress: {

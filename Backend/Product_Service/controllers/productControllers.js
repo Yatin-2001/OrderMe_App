@@ -118,8 +118,15 @@ exports.getProductByIdREST = async (req, res) => {
 exports.createProduct = async (req, res) => {
     try {
         const { name, description, price } = req.body;
-        const product = new Product({ name, description, price });
-        await product.save();
+        const product = await Product.create({ name, description, price });
+        
+        await sendEvent('add-product', {
+            productId: product._id, 
+            name: name, 
+            description: description, 
+            price: price
+        });
+
         res.status(201).json(product);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -135,6 +142,14 @@ exports.updateProduct = async (req, res) => {
             { new: true }
         );
         if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        await sendEvent('update-product', {
+            productId: product._id, 
+            name: product.name, 
+            description: product.description,
+            price: product.price
+        });
+
         res.json(product);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -143,8 +158,13 @@ exports.updateProduct = async (req, res) => {
 
 exports.deleteProduct = async (req, res) => {
     try {
-        const product = await Product.findByIdAndDelete(req.params.id);
+        const product = await Product.findByIdAndDelete(req.params.productId);
         if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        await sendEvent('delete-product', {
+            productId: req.params.productId
+        });
+
         res.json({ message: 'Product deleted' });
     } catch (err) {
         res.status(500).json({ message: err.message });
