@@ -1,0 +1,11 @@
+# Flask app
+flask
+qdrant-client
+sentence-transformers
+langchain
+langchain-community
+openai
+kafka-python
+python-dotenv
+pydantic
+tqdm

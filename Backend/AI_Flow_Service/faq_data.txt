@@ -1,0 +1,17 @@
+Q: How can I cancel my order?
+A: You can cancel the order from your profile. If it is not delivered, the refund process is initiated instantly. If th order is delivered, the pickup date is defined and after a successfull pickup, the refund is initiated.
+
+Q: When will my refund be processed?
+A: Refunds are processed within 3–5 business days after cancellation.
+
+Q: What payment methods are available?
+A: We support UPI, COD, and all major credit/debit cards.
+
+Q: Can I change my delivery address after placing an order?
+A: No, the address cannot be changed once the order is shipped.
+
+Q: What does “reserved” status mean?
+A: It means the items have been blocked in inventory but not yet shipped.
+
+Q: Can I have the order delivered at multiple locations?
+A: No one order can only be delivered to one location. But you can create another order for delivering to separate location.
