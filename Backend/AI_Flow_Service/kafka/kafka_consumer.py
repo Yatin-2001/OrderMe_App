@@ -1,9 +1,9 @@
 # kafka_consumer.py
 from kafka import KafkaConsumer
-from qdrant_ops import upsert_order_to_qdrant
 import json
 import threading
 import logging
+from kafka.handlers import handle_event
 
 EVENT_TOPICS = [
     'add-order',
@@ -32,10 +32,12 @@ def start_rag_consumer():
 
     def consume():
         for message in consumer:
-            event_data = message.value
+            topic = message.topic
+            data = json.loads(message.value.decode('utf-8'))
+            
             try:
+                handle_event(topic, data)
 
-                upsert_order_to_qdrant(event_data)
                 logging.info(f"[✓] RAG Service upserted event from topic: {message.topic}")
             except Exception as e:
                 logging.error(f"[✗] Failed to process message: {e}")

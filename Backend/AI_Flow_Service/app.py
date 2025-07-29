@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from controllers.rag_controller import handle_query
 from controllers.ingest_controller import ingest_order_data
-from kafka_consumer import start_rag_consumer
+from Backend.AI_Flow_Service.kafka.kafka_consumer import start_rag_consumer
 
 app = Flask(__name__)
 
