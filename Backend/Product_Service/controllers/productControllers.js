@@ -50,7 +50,7 @@ exports.reserveInventory = async (data) => {
 
 
         // Initiate SAGA for add Paymment
-        await sendEvent('update-payment', {
+        await sendEvent('payment-update', {
             orderId: data.orderId,
             userId: data.userId,
             amount: data.amount,

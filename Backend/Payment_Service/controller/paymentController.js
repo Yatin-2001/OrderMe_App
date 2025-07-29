@@ -20,6 +20,7 @@ var processPayment = async (data) => {
     await sendEvent('payment-success', { orderId });
 
     await sendEvent('add-payment', {
+      orderId: orderId,
       paymentId: payment._id, 
       orderId: orderId, 
       status: (paymentMethod === COD) ? 'INITIATED' : 'SUCCESS',
@@ -59,6 +60,7 @@ async function processCODPayment({ orderId }) {
     await sendEvent('payment-success', { orderId });
 
     await sendEvent('update-payment', {
+      orderId: orderId,
       paymentId: payment._id, 
       status: 'SUCCESS',
       isCODPayed: true

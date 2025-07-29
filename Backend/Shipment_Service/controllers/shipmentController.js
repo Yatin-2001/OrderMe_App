@@ -86,6 +86,7 @@ async function pickedOrder(req, res) {
   await sendEvent('pickup-successful', { orderId: shipment.orderId });
 
   await sendEvent('update-shipment', {
+    orderId: orderId,
     shipmentId: shipment._id,
     status: 'PICKUP SUCCCESSFUL'
   });
@@ -109,6 +110,7 @@ async function cancelShipment(data) {
       await sendEvent('pickup-scheduled', { orderId: shipment.orderId });
 
       await sendEvent('update-shipment', {
+        orderId: orderId,
         shipmentId: shipment._id,
         status: 'PICKUP SCHEDULED',
         isPickupRequired: true,
@@ -122,6 +124,7 @@ async function cancelShipment(data) {
       await sendEvent('pickup-successfull', { orderId: shipment.orderId });
 
       await sendEvent('update-shipment', {
+        orderId: orderId,
         shipmentId: shipment._id,
         status: 'CANCELLED'
       });

@@ -1,4 +1,4 @@
-from utils.qdrant_utils import upsert_vector, delete_vector
+from utils.qdrant_utils import upsert_vector, delete_vector, get_existing_payload
 from datetime import datetime
 
 def stringify(data: dict):
@@ -19,45 +19,59 @@ def handle_event(topic: str, data: dict):
 
     elif topic == "update-order":
         order_id = data["orderId"]
-        payload = {"status": data["status"]}
-        upsert_vector("orders", order_id, payload, f"Order updated to {data['status']}")
+        existing = get_existing_payload("orders", order_id)
+        if not existing:
+            print(f"[WARN] No existing order found for ID {order_id}")
+            return
+        existing["status"] = data["status"]
+        upsert_vector("orders", order_id, existing, stringify(existing))
 
     elif topic == "add-payment":
         order_id = data["orderId"]
-        payment_id = data["paymentId"]
-        payload = {
-            "type": "payment",
-            "order_id": order_id,
-            "payment_id": payment_id,
-            "status": data["status"],
-            "method": data["paymentMethod"],
-            "amount": data["amount"]
-        }
-        upsert_vector("orders", order_id, payload, stringify(payload))
+        existing = get_existing_payload("orders", order_id)
+        if not existing:
+            print(f"[WARN] No existing order found for ID {order_id} while adding payment")
+            return
+        existing.update({
+            "payment_id": data["paymentId"],
+            "payment_status": data["status"],
+            "payment_method": data["paymentMethod"],
+            "payment_amount": data["amount"]
+        })
+        upsert_vector("orders", order_id, existing, stringify(existing))
 
     elif topic == "update-payment":
         order_id = data["orderId"]
-        payload = {"payment_status": data["status"]}
-        upsert_vector("orders", order_id, payload, f"Payment updated to {data['status']}")
+        existing = get_existing_payload("orders", order_id)
+        if not existing:
+            print(f"[WARN] No existing order found for ID {order_id} while updating payment")
+            return
+        existing["payment_status"] = data["status"]
+        existing["isCODPayed"] = data.get("isCODPayed")
+        upsert_vector("orders", order_id, existing, stringify(existing))
 
     elif topic == "add-shipment":
         order_id = data["orderId"]
-        payload = {
-            "type": "shipment",
+        existing = get_existing_payload("orders", order_id)
+        if not existing:
+            print(f"[WARN] No existing order found for ID {order_id} while adding shipment")
+            return
+        existing.update({
             "shipment_id": data["shipmentId"],
-            "order_id": order_id,
-            "scheduledDay": data["scheduledDay"]
-        }
-        upsert_vector("orders", order_id, payload, stringify(payload))
+            "shipment_scheduled_day": data["scheduledDay"]
+        })
+        upsert_vector("orders", order_id, existing, stringify(existing))
 
     elif topic == "update-shipment":
         order_id = data["orderId"]
-        payload = {
-            "shipment_status": data["status"],
-            "isPickupRequired": data.get("isPickupRequired", False),
-            "pickupScheduleDay": data.get("pickupSchedule")
-        }
-        upsert_vector("orders", order_id, payload, stringify(payload))
+        existing = get_existing_payload("orders", order_id)
+        if not existing:
+            print(f"[WARN] No existing order found for ID {order_id} while updating shipment")
+            return
+        existing["shipment_status"] = data["status"]
+        existing["isPickupRequired"] = data.get("isPickupRequired", False)
+        existing["pickupScheduleDay"] = data.get("pickupSchedule")
+        upsert_vector("orders", order_id, existing, stringify(existing))
 
     elif topic == "add-product":
         product_id = data["productId"]
@@ -73,17 +87,21 @@ def handle_event(topic: str, data: dict):
 
     elif topic == "update-product":
         product_id = data["productId"]
-        payload = {
+        existing = get_existing_payload("products", product_id)
+        if not existing:
+            print(f"[WARN] No existing product found for ID {product_id}")
+            return
+        existing.update({
             "name": data["name"],
             "description": data["description"],
             "price": data["price"]
-        }
+        })
         text = f"{data['name']} - {data['description']}"
-        upsert_vector("products", product_id, payload, text)
+        upsert_vector("products", product_id, existing, text)
 
     elif topic == "delete-product":
         product_id = data["productId"]
         delete_vector("products", product_id)
 
     else:
-        print(f"Unknown topic: {topic}")
+        print(f"[WARN] Unknown topic: {topic}")
