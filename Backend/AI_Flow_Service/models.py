@@ -13,11 +13,9 @@ class UserAddress(BaseModel):
     pincode: str
     coordinates: Coordinates
 
-class ProductInfo(BaseModel):
-    name: str
+class ProdInfo(BaseModel):
     product_id: str
-    description: str
-    price: float
+    quantity: int
 
 class PaymentInfo(BaseModel):
     payment_id: str
@@ -31,16 +29,24 @@ class ShipmentStatus(BaseModel):
     isPickupRequired: Optional[bool]
     pickupScheduleDay: datetime
 
+# Order Table...
 class OrderVector(BaseModel):
     order_id: str
     user_id: str
     email: str
     userAddress: UserAddress
     status: str
-    products: List[ProductInfo]
+    products: List[ProdInfo] # Contains the product info;
     payment: PaymentInfo
     shipment_status: ShipmentStatus
     total_amount: float
     isRefundInitiated: bool = False
     createdAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updatedAt: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+# Product Table...
+class ProductVector(BaseModel):
+    name: str
+    product_id: str
+    description: str
+    price: float

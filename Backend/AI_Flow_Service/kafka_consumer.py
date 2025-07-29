@@ -6,13 +6,18 @@ import threading
 import logging
 
 EVENT_TOPICS = [
-    'order_created',
-    'order_paid',
-    'order_shipped',
-    'order_delivered',
-    'order_failed',
+    'add-order',
+    'add-payment',
+    'add-shipment',
+    'update-order',
+    'update-payment',
     'order_cancelled',
-    'refund_initiated'
+    'update-shipment',
+
+    # events realted to product inventory...
+    'add-product',
+    'update-product',
+    'delete-product'
 ]
 
 def start_rag_consumer():
@@ -29,6 +34,7 @@ def start_rag_consumer():
         for message in consumer:
             event_data = message.value
             try:
+
                 upsert_order_to_qdrant(event_data)
                 logging.info(f"[✓] RAG Service upserted event from topic: {message.topic}")
             except Exception as e:
