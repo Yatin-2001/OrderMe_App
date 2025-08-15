@@ -1,31 +1,43 @@
 // controllers/orderController.js
 const Order = require('../models/Order');
 const { sendEvent } = require('../kafka/producer');
+import axios from 'axios';
 
 exports.createOrder = async (req, res) => {
   try {
-    const { email, items, totalAmount, paymentMethod, address } = req.body;
+    const { email, items, selectedCoupons, paymentMethod, address } = req.body;
     const userId = req.user.id;
 
-    // 1. Create order in DB
+    // 1. Using Cart items create Bill using Blling Service:-
+    var response = await axios.post('http://localhost:5015/api/billing/generate', {
+        userEmail: email, 
+        cartItems: items, 
+        selectedCoupons: selectedCoupons
+    })
+
+    const billId = response.data.billId;
+
+    // 2. Create order in DB
     const order = await Order.create({ userId, items, totalAmount, userAddress: address });
 
-    // 2. Initiate SAGA for Reserve Inventory
+    // 3. Initiate SAGA for Reserve Inventory
     await sendEvent('reserve-inventory', {
       orderId: order._id,
       userId: userId,
       amount: totalAmount,
+      BillId: billId,
       paymentMethod: paymentMethod,
       userAddress: address,
       items,
     });
 
-    // 3. Initate Event for creating order.
+    // 4. Initate Event for creating order.
     await sendEvent('add-order', {
       email: email,
       orderId: order._id,
       items: items,
-      address: address
+      address: address,
+      billId: billId
     });
 
 

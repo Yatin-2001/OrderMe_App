@@ -20,7 +20,10 @@ const OrderSchema = new mongoose.Schema({
       quantity: Number,
     },
   ],
-  totalAmount: Number,
+  // totalAmount: Number, Not required now
+  BillId: {
+    type: String
+  },
   status: {
     type: String,
     enum: ['CREATED', 'RESERVED', 'PAID', 'SHIPPED', 'PICKUP SCHEDULED', 'PICKUP SUCCESSFUL','PICKUP FAILED', 'DELIVERED', 'FAILED', 'CANCELLED', 'REFUND INITIATED'],

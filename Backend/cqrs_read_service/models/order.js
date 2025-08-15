@@ -13,6 +13,7 @@ const address = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
     orderId: { type: String, required: true },
     email: { type: String, required: true },
+    billId: {type: String, required: true}, // Since billing has zero read load, use that service only.
     items: [
         {
             productId: String,
